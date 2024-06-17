@@ -1,6 +1,12 @@
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 import './App.css';
-import { CounterId, DecrementAction, IncrementAction, store } from './store';
+import {
+	AppState,
+	CounterId,
+	DecrementAction,
+	IncrementAction,
+	store,
+} from './store';
 
 function App() {
 	return (
@@ -8,23 +14,42 @@ function App() {
 			<Counter counterId='first' />
 			<Counter counterId='second' />
 		</>
-	)
+	);
 }
 
-export function Counter({counterId}: { counterId: CounterId }) {
+// selector - это чистая функция, которая принимает состояние и возвращает его какой то кусочек.
+// Важно, что это не должно создавать никаких объектов внутри себя итд
+const selectCounter = (state: AppState, counterId: CounterId) =>
+	state.counters[counterId];
+
+
+export function Counter({ counterId }: { counterId: CounterId }) {
 	const [, forceUpdate] = useReducer(x => x + 1, 0);
+
+	// нашли последнее значение state
+	const lastStateRef = useRef<ReturnType<typeof selectCounter>>()
 
 	useEffect(() => {
 		const unsubscribe = store.subscribe(() => {
-			forceUpdate();
+			const currentState = selectCounter(store.getState(), counterId);
+			const lastState = lastStateRef.current;
+			// это работает если только мы имеем дело с иммутабельным состоянием
+			// то есть в данном случае проверяем изменение 1 свойства
+			if (currentState !== lastState) {
+				forceUpdate();
+			}
+
+			lastStateRef.current = currentState;
 		});
 
 		return unsubscribe;
 	}, []);
+
+	const counterState = selectCounter(store.getState(), counterId);
 	return (
 		<>
 			{/* достаем актуальное значение counter */}
-			counter {store.getState().counters[counterId]?.counter}
+			counter {counterState?.counter}
 			{/* ключевое слово "satisfies" говорит о том, что {type: ""} этот литерал соответствует типу IncrementAction*/}
 			<button
 				onClick={() =>
