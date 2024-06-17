@@ -1,42 +1,74 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-type State = {
+type CounterState = {
 	counter: number;
+};
+
+export type CounterId = string;
+
+type State = {
+	counters: Record<CounterId, CounterState | undefined>;
 };
 
 export type IncrementAction = {
 	type: 'increment';
+	payload: {
+		counterId: CounterId;
+	};
 };
 
 export type DecrementAction = {
 	type: 'decrement';
+	payload: {
+		counterId: CounterId;
+	};
 };
 
 type Action = IncrementAction | DecrementAction;
 
+const inintialCounterState: CounterState = { counter: 0 };
+
 const initialState: State = {
-	counter: 0,
+	counters: {},
 };
 
-// reducer - принимает предыдущее состояни, action и возвращает новое состояние
+// reducer - принимает предыдущее состояние и action далее возвращает новое состояние
 
 const reducer = (state = initialState, action: Action): State => {
 	switch (action.type) {
-		case 'increment':
+		case 'increment': {
+			const { counterId } = action.payload;
+			const currentCounter = state.counters[counterId] ?? inintialCounterState;
 			return {
 				...state,
-				counter: state.counter + 1,
+				counters: {
+					...state.counters,
+					[counterId]: {
+						...currentCounter,
+						counter: currentCounter.counter + 1,
+					},
+				},
 			};
-		case 'decrement':
+		}
+		case 'decrement': {
+			const { counterId } = action.payload;
+			const currentCounter = state.counters[counterId] ?? inintialCounterState;
 			return {
 				...state,
-				counter: state.counter - 1,
+				counters: {
+					...state.counters,
+					[counterId]: {
+						...currentCounter,
+						counter: currentCounter.counter - 1,
+					},
+				},
 			};
+		}
 		default:
 			return state;
 	}
 };
 
 export const store = configureStore({
-	reducer: reducer ,
+	reducer: reducer,
 });
