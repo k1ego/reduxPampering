@@ -1,11 +1,11 @@
-import { useEffect, useReducer, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 import './App.css';
 import {
-	AppState,
 	CounterId,
 	DecrementAction,
 	IncrementAction,
-	store,
+	selectCounter,
+	useAppSelector,
 } from './store';
 
 function App() {
@@ -17,35 +17,22 @@ function App() {
 	);
 }
 
-// selector - это чистая функция, которая принимает состояние и возвращает его какой то кусочек.
-// Важно, что это не должно создавать никаких объектов внутри себя итд
-const selectCounter = (state: AppState, counterId: CounterId) =>
-	state.counters[counterId];
-
 
 export function Counter({ counterId }: { counterId: CounterId }) {
-	const [, forceUpdate] = useReducer(x => x + 1, 0);
+	// dispatch - отправка действия
+	const dispatch = useDispatch();
 
-	// нашли последнее значение state
-	const lastStateRef = useRef<ReturnType<typeof selectCounter>>()
+	// селектор вызывается каждый раз, когда меняется что-то в store
+	// это происходит чаще, чем ререндерится Counter, компоненты
+	// поэтому он должен быть быстрым
+	// =============
 
-	useEffect(() => {
-		const unsubscribe = store.subscribe(() => {
-			const currentState = selectCounter(store.getState(), counterId);
-			const lastState = lastStateRef.current;
-			// это работает если только мы имеем дело с иммутабельным состоянием
-			// то есть в данном случае проверяем изменение 1 свойства
-			if (currentState !== lastState) {
-				forceUpdate();
-			}
+	// Также AppSelector должен возвращать тот кусок состояния, который нужен компоненту, не более того
 
-			lastStateRef.current = currentState;
-		});
+	// =============
+	const counterState = useAppSelector(state => selectCounter(state, counterId));
 
-		return unsubscribe;
-	}, []);
-
-	const counterState = selectCounter(store.getState(), counterId);
+	
 	return (
 		<>
 			{/* достаем актуальное значение counter */}
@@ -53,7 +40,7 @@ export function Counter({ counterId }: { counterId: CounterId }) {
 			{/* ключевое слово "satisfies" говорит о том, что {type: ""} этот литерал соответствует типу IncrementAction*/}
 			<button
 				onClick={() =>
-					store.dispatch({
+					dispatch({
 						type: 'increment',
 						payload: { counterId },
 					} satisfies IncrementAction)
@@ -63,7 +50,7 @@ export function Counter({ counterId }: { counterId: CounterId }) {
 			</button>
 			<button
 				onClick={() =>
-					store.dispatch({
+					dispatch({
 						type: 'decrement',
 						payload: { counterId },
 					} satisfies DecrementAction)
