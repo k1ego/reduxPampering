@@ -26,10 +26,12 @@ type CounterState = {
 	counter: number;
 };
 
+type CountersState = Record<CounterId, CounterState | undefined>;
+
 export type CounterId = string;
 
 type State = {
-	counters: Record<CounterId, CounterState | undefined>;
+	counters: CountersState;
 	users: UsersState;
 };
 
@@ -85,50 +87,24 @@ const initialState: State = {
 	users: initialUsersState,
 };
 
+const inintialCountersState: CountersState = {};
+
 // reducer - принимает предыдущее состояние и action далее возвращает новое состояние
 
-const reducer = (state = initialState, action: Action): State => {
+const usersReducer = (
+	state = initialUsersState,
+	action: Action
+): UsersState => {
 	switch (action.type) {
-		case 'increment': {
-			const { counterId } = action.payload;
-			const currentCounter = state.counters[counterId] ?? inintialCounterState;
-			return {
-				...state,
-				counters: {
-					...state.counters,
-					[counterId]: {
-						...currentCounter,
-						counter: currentCounter.counter + 1,
-					},
-				},
-			};
-		}
-		case 'decrement': {
-			const { counterId } = action.payload;
-			const currentCounter = state.counters[counterId] ?? inintialCounterState;
-			return {
-				...state,
-				counters: {
-					...state.counters,
-					[counterId]: {
-						...currentCounter,
-						counter: currentCounter.counter - 1,
-					},
-				},
-			};
-		}
 		case 'usersStored': {
 			const { users } = action.payload;
 			return {
 				...state,
-				users: {
-					...state.users,
-					entities: users.reduce((acc, user) => {
-						acc[user.id] = user;
-						return acc;
-					}, {} as Record<UserId, User>),
-					ids: users.map(user => user.id),
-				},
+				entities: users.reduce((acc, user) => {
+					acc[user.id] = user;
+					return acc;
+				}, {} as Record<UserId, User>),
+				ids: users.map(user => user.id),
 			};
 		}
 
@@ -136,25 +112,60 @@ const reducer = (state = initialState, action: Action): State => {
 			const { userId } = action.payload;
 			return {
 				...state,
-				users: {
-					...state.users,
-					selectedUserId: userId,
-				},
+				selectedUserId: userId,
 			};
 		}
 
 		case 'userRemoveSelected': {
 			return {
 				...state,
-				users: {
-					...state.users,
-					selectedUserId: undefined,
+				selectedUserId: undefined,
+			};
+		}
+		default:
+			return state;
+	}
+};
+
+const countersReducer = (
+	state = inintialCountersState,
+	action: Action
+): CountersState => {
+	switch (action.type) {
+		case 'increment': {
+			const { counterId } = action.payload;
+			const currentCounter = state[counterId] ?? inintialCounterState;
+			return {
+				...state,
+				[counterId]: {
+					...currentCounter,
+					counter: currentCounter.counter + 1,
 				},
 			};
 		}
-
+		case 'decrement': {
+			const { counterId } = action.payload;
+			const currentCounter = state[counterId] ?? inintialCounterState;
+			return {
+				...state,
+				[counterId]: {
+					...currentCounter,
+					counter: currentCounter.counter - 1,
+				},
+			};
+		}
 		default:
 			return state;
+	}
+};
+
+
+// на каждый кусочек состояния вызывается свой reducer, который может создать новый кусочек, либо обновить
+
+const reducer = (state = initialState, action: Action): State => {
+	return {
+		users: usersReducer(state.users, action),
+		counters: countersReducer(state.counters, action),
 	}
 };
 
