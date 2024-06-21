@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { useDispatch, useSelector, useStore } from 'react-redux';
 
 export type UserId = string;
@@ -30,10 +30,6 @@ type CountersState = Record<CounterId, CounterState | undefined>;
 
 export type CounterId = string;
 
-type State = {
-	counters: CountersState;
-	users: UsersState;
-};
 
 export type UserSelectedAction = {
 	type: 'userSelected';
@@ -82,10 +78,6 @@ const initialUsersState: UsersState = {
 
 const inintialCounterState: CounterState = { counter: 0 };
 
-const initialState: State = {
-	counters: {},
-	users: initialUsersState,
-};
 
 const inintialCountersState: CountersState = {};
 
@@ -162,12 +154,12 @@ const countersReducer = (
 
 // на каждый кусочек состояния вызывается свой reducer, который может создать новый кусочек, либо обновить
 
-const reducer = (state = initialState, action: Action): State => {
-	return {
-		users: usersReducer(state.users, action),
-		counters: countersReducer(state.counters, action),
-	}
-};
+const reducer = combineReducers({
+	users: usersReducer,
+	counters: countersReducer,
+})
+
+
 
 export const store = configureStore({
 	reducer: reducer,
