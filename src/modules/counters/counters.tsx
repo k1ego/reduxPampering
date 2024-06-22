@@ -1,11 +1,11 @@
 import { useDispatch } from 'react-redux';
+import { useAppSelector } from '../../store';
 import {
 	CounterId,
 	DecrementAction,
 	IncrementAction,
 	selectCounter,
-	useAppSelector,
-} from './store';
+} from './counters.slice';
 
 export function Counters() {
 	return (
@@ -17,24 +17,13 @@ export function Counters() {
 }
 
 export function Counter({ counterId }: { counterId: CounterId }) {
-	// dispatch - отправка действия
 	const dispatch = useDispatch();
-
-	// селектор вызывается каждый раз, когда меняется что-то в store
-	// это происходит чаще, чем ререндерится Counter, компоненты
-	// поэтому он должен быть быстрым
-	// =============
-
-	// Также AppSelector должен возвращать тот кусок состояния, который нужен компоненту, не более того
-
-	// =============
 	const counterState = useAppSelector(state => selectCounter(state, counterId));
+	console.log('render counter', counterId);
 
 	return (
 		<div className='flex flex-row items-center justify-center gap-5 '>
-			{/* достаем актуальное значение counter */}
 			counter {counterState?.counter}
-			{/* ключевое слово "satisfies" говорит о том, что {type: ""} этот литерал соответствует типу IncrementAction*/}
 			<button
 				onClick={() =>
 					dispatch({
@@ -43,6 +32,15 @@ export function Counter({ counterId }: { counterId: CounterId }) {
 					} satisfies IncrementAction)
 				}
 				className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
+
+				// селектор вызывается каждый раз, когда меняется что-то в store
+				// это происходит чаще, чем ререндерится Counter, компоненты
+				// поэтому он должен быть быстрым
+				// =============
+
+				// Также AppSelector должен возвращать тот кусок состояния, который нужен компоненту, не более того
+
+				// =============
 			>
 				increment
 			</button>
@@ -55,7 +53,7 @@ export function Counter({ counterId }: { counterId: CounterId }) {
 				}
 				className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
 			>
-				decrement
+				decriment
 			</button>
 		</div>
 	);
