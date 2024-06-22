@@ -1,11 +1,6 @@
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../../store';
-import {
-	CounterId,
-	DecrementAction,
-	IncrementAction,
-	selectCounter,
-} from './counters.slice';
+import { CounterId, incrementAction, decrementAction, selectCounter } from './counters.slice';
 
 export function Counters() {
 	return (
@@ -21,16 +16,13 @@ export function Counter({ counterId }: { counterId: CounterId }) {
 	const counterState = useAppSelector(state => selectCounter(state, counterId));
 	console.log('render counter', counterId);
 
+	
+
 	return (
 		<div className='flex flex-row items-center justify-center gap-5 '>
 			counter {counterState?.counter}
 			<button
-				onClick={() =>
-					dispatch({
-						type: 'increment',
-						payload: { counterId },
-					} satisfies IncrementAction)
-				}
+				onClick={() => dispatch(incrementAction({ counterId }))}
 				className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
 
 				// селектор вызывается каждый раз, когда меняется что-то в store
@@ -45,15 +37,10 @@ export function Counter({ counterId }: { counterId: CounterId }) {
 				increment
 			</button>
 			<button
-				onClick={() =>
-					dispatch({
-						type: 'decrement',
-						payload: { counterId },
-					} satisfies DecrementAction)
-				}
+				onClick={() => dispatch(decrementAction({ counterId }))}
 				className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
 			>
-				decriment
+				decrement
 			</button>
 		</div>
 	);
