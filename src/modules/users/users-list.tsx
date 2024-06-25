@@ -1,21 +1,25 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useAppDispath, useAppSelector } from "../../store";
-import {
-  selectSelectedUserId,
-  selectSortedUsers,
-  UserId,
-  UserRemoveSelectedAction,
-  UserSelectedAction,
-} from "./users.slice";
+import { UserId, usersSlice } from "./users.slice";
+import { api } from "../../shared/api"
 
 export function UsersList() {
   const [sortType, setSortType] = useState<"asc" | "desc">("asc");
 
+
+  useEffect(() => {
+    api.getUsers().then((users) => {
+      console.log(users)
+    })
+  })
+
   const sortedUsers = useAppSelector((state) =>
-    selectSortedUsers(state, sortType)
+    usersSlice.selectors.selectSortedUsers(state, sortType)
   );
 
-  const selectedUserId = useAppSelector(selectSelectedUserId);
+  const selectedUserId = useAppSelector(
+    usersSlice.selectors.selectSelectedUserId
+  );
 
   return (
     <div className="flex flex-col items-center">
@@ -56,10 +60,7 @@ const UserListItem = memo(function UserListItem({
   const user = useAppSelector((state) => state.users.entities[userId]);
   const dispatch = useAppDispath();
   const handleUserClick = () => {
-    dispatch({
-      type: "userSelected",
-      payload: { userId: user.id },
-    } satisfies UserSelectedAction);
+    dispatch(usersSlice.actions.selected({ userId }));
   };
   return (
     <li key={user.id} className="py-2" onClick={handleUserClick}>
@@ -72,9 +73,7 @@ function SelectedUser({ userId }: { userId: UserId }) {
   const user = useAppSelector((state) => state.users.entities[userId]);
   const dispatch = useAppDispath();
   const handleBackButtonClick = () => {
-    dispatch({
-      type: "userRemoveSelected",
-    } satisfies UserRemoveSelectedAction);
+    dispatch(usersSlice.actions.selectRemove());
   };
 
   return (
