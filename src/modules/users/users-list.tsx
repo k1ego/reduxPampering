@@ -2,6 +2,7 @@ import { memo, useEffect, useState } from "react";
 import { useAppDispath, useAppSelector, useAppStore } from "../../store";
 import { UserId, usersSlice } from "./users.slice";
 import { api } from "../../shared/api"
+import { fetchUsers } from "./model/fetch-users";
 
 export function UsersList() {
   const [sortType, setSortType] = useState<"asc" | "desc">("asc");
@@ -14,24 +15,7 @@ export function UsersList() {
 
 
   useEffect(() => {
-    // здесь getState нужен для того, чтобы получить актуальные данные, тк до этого useEffect() вызывался после рендеринга компонента, 
-    // когда все эффекты уже были вызваны до этого. То есть все 4 эффекта в useEffect() были сохранены внутри React с ссылкой на isIdle 
-    // которое было true на момент времени начала. И idle всегда true, хотя внутри store он уже false
-    const isIdle = usersSlice.selectors.selectIsFetchUsersIdle(
-      appStore.getState()
-    );
-    if (!isIdle) {
-      return;
-    }
-    dispatch(usersSlice.actions.fetchUsersPending());
-    api
-      .getUsers()
-      .then((users) => {
-        dispatch(usersSlice.actions.fetchUsersSuccess({ users }));
-      })
-      .catch(() => {
-        dispatch(usersSlice.actions.fetchUsersFailed());
-      });
+    fetchUsers(appStore.dispatch, appStore.getState)
   }, [dispatch, appStore]);
 
   const sortedUsers = useAppSelector((state) =>
