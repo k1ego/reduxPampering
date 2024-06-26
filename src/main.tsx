@@ -5,7 +5,9 @@ import { Provider } from "react-redux";
 import { store } from "./store.ts";
 import { fetchUsers } from "./modules/users/model/fetch-users.ts";
 
-fetchUsers(store.dispatch, store.getState)
+
+// чтобы инициировать загрузку данных при начальной загрузке приложения
+store.dispatch(fetchUsers)
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

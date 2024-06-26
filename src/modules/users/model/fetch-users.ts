@@ -1,8 +1,8 @@
-import { api } from '../../../shared/api';
-import { AppDispatch, AppState } from '../../../store';
+import { AppThunk } from '../../../store';
 import { usersSlice } from '../users.slice';
 
-export const fetchUsers = (dispatch: AppDispatch, getState: () => AppState) => {
+// здесь не так как в предыдущем комите, потому что делаем thunk как Action Creator и с помощью AppThunk все типизируем
+export const fetchUsers = (): AppThunk => (dispatch, getState, {api}) => {
 	const isIdle = usersSlice.selectors.selectIsFetchUsersIdle(getState());
 	if (!isIdle) {
 		return;
