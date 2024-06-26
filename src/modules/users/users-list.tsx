@@ -1,17 +1,38 @@
 import { memo, useEffect, useState } from "react";
-import { useAppDispath, useAppSelector } from "../../store";
+import { useAppDispath, useAppSelector, useAppStore } from "../../store";
 import { UserId, usersSlice } from "./users.slice";
 import { api } from "../../shared/api"
 
 export function UsersList() {
   const [sortType, setSortType] = useState<"asc" | "desc">("asc");
+  const dispatch = useAppDispath();
+
+  // useAppStore - позволяет напрямую обраться к store
+  const appStore = useAppStore();
+
+  const isPending = useAppSelector(usersSlice.selectors.selectIsFetchUsersPending)
 
 
   useEffect(() => {
-    api.getUsers().then((users) => {
-      console.log(users)
-    })
-  })
+    // здесь getState нужен для того, чтобы получить актуальные данные, тк до этого useEffect() вызывался после рендеринга компонента, 
+    // когда все эффекты уже были вызваны до этого. То есть все 4 эффекта в useEffect() были сохранены внутри React с ссылкой на isIdle 
+    // которое было true на момент времени начала. И idle всегда true, хотя внутри store он уже false
+    const isIdle = usersSlice.selectors.selectIsFetchUsersIdle(
+      appStore.getState()
+    );
+    if (!isIdle) {
+      return;
+    }
+    dispatch(usersSlice.actions.fetchUsersPending());
+    api
+      .getUsers()
+      .then((users) => {
+        dispatch(usersSlice.actions.fetchUsersSuccess({ users }));
+      })
+      .catch(() => {
+        dispatch(usersSlice.actions.fetchUsersFailed());
+      });
+  }, [dispatch, appStore]);
 
   const sortedUsers = useAppSelector((state) =>
     usersSlice.selectors.selectSortedUsers(state, sortType)
@@ -20,6 +41,10 @@ export function UsersList() {
   const selectedUserId = useAppSelector(
     usersSlice.selectors.selectSelectedUserId
   );
+
+  if(isPending) {
+    return <div>Loading...</div>
+  }
 
   return (
     <div className="flex flex-col items-center">
