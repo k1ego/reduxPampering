@@ -18,6 +18,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
+        // loader - специальная функция, которая вызывается перед тем как перейти на страницу
         loader: () => redirect("/users"),
       },
       {
