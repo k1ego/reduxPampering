@@ -1,5 +1,5 @@
 import { createAction, createReducer } from "@reduxjs/toolkit";
-import { AppState } from "../../store";
+import { AppState } from "../../shared/redux";
 
 type CounterState = {
   counter: number;
@@ -25,16 +25,16 @@ export const countersReducer = createReducer(
     builder.addCase(incrementAction, (state, action) => {
       const { counterId } = action.payload;
       if (!state[counterId]) {
-        state[counterId] = { ...initialCounterState };
+        state[counterId] = initialCounterState;
       }
-      state[counterId]!.counter++;
+      state[counterId].counter++;
     });
     builder.addCase(decrementAction, (state, action) => {
       const { counterId } = action.payload;
       if (!state[counterId]) {
-        state[counterId] = { ...initialCounterState };
+        state[counterId] = initialCounterState;
       }
-      state[counterId]!.counter--;
+      state[counterId].counter++;
     });
   }
 );
